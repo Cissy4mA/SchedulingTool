@@ -1,6 +1,7 @@
 # SchedulingTool
 
 > AI 驱动的智能日程助手，支持自然语言录入、图片识别、跨设备云同步。
+> （纯用workbuddy搓出来的
 
 🔗 **在线体验**：https://792a2fbf0e9f4fb98b41d7f2bd5d40ef.app.workbuddy.link
 

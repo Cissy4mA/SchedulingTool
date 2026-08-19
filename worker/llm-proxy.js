@@ -152,6 +152,7 @@ const pad2 = (n) => String(n).padStart(2, '0')
 const normalizeDate = (raw) => {
   if (typeof raw !== 'string') return ''
   const s = raw.trim()
+  if (s.includes('NaN') || s === 'null' || s === 'undefined') return ''
   // 已经是标准格式
   if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s
   // 2026年8月24日 / 2026年08月24日

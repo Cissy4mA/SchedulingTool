@@ -70,6 +70,17 @@ export function getMonthMatrix(year: number, month: number): Date[] {
   return cells
 }
 
+// 判断日期字符串是否有效（YYYY-MM-DD 且不是 NaN-NaN-NaN）
+export function isValidDateKey(s: any): boolean {
+  return typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s) && !s.includes('NaN')
+}
+
+// 从 events 数组里过滤出日期有效的（用于加载/同步后清洗历史脏数据）
+export function sanitizeEvents(events: CalendarEvent[] | undefined | null): CalendarEvent[] {
+  if (!Array.isArray(events)) return []
+  return events.filter((e) => e && isValidDateKey(e.date))
+}
+
 // Date -> YYYY-MM-DD
 export function toKey(d: Date): string {
   const y = d.getFullYear()

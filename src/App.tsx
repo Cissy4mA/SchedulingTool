@@ -31,6 +31,8 @@ import {
   saveState,
   mergeCategories,
   mergeEvents,
+  isValidDateKey,
+  sanitizeEvents,
 } from './utils'
 import { CalendarEvent, Category } from './types'
 import { parseSchedule, ParsedSchedule, parseWithLLM, parseImageWithLLM, compressImage } from './assistant'
@@ -177,8 +179,13 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [events, categories, userEmail])
 
-  const year = viewDate.getFullYear()
-  const month = viewDate.getMonth()
+  // 防御：viewDate 已被污染成 Invalid Date 时回退到当前月（避免 AI 识别错时整月显示 NaN）
+  const safeViewDate = !viewDate || isNaN(viewDate.getTime())
+    ? new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+    : viewDate
+  const year = safeViewDate.getFullYear()
+  const month = safeViewDate.getMonth()
+  const safeSelectedDate = isValidDateKey(selectedDate) ? selectedDate : toKey(TODAY)
 
   const cells = useMemo(() => getMonthMatrix(year, month), [year, month])
 
@@ -327,8 +334,10 @@ export default function App() {
       if (editingId) return prev.map((x) => (x.id === editingId ? stamped : x))
       return [...prev, stamped]
     })
-    const d = new Date(e.date + 'T00:00:00')
-    setViewDate(new Date(d.getFullYear(), d.getMonth(), 1))
+    if (isValidDateKey(e.date)) {
+      const d = new Date(e.date + 'T00:00:00')
+      setViewDate(new Date(d.getFullYear(), d.getMonth(), 1))
+    }
     setView('month')
     setSelectedDate(e.date)
     setEditingId(null)
@@ -345,6 +354,8 @@ export default function App() {
 
   // AI 助手静默添加：写入日程但不切换视图、不打断对话
   const addEventQuiet = (e: CalendarEvent) => {
+    // 校验：date 必须是 YYYY-MM-DD，否则拒绝并跳过（防止 AI 识别异常污染日历）
+    if (!isValidDateKey(e.date)) return
     setEvents((prev) => [...prev, { ...e, updatedAt: Date.now() }])
     // 顺便把日历翻到日程所在月，方便用户稍后查看
     const d = new Date(e.date + 'T00:00:00')
@@ -408,10 +419,20 @@ export default function App() {
     const cloud = await cloudLoadData()
     const localLastEdit = Number(localStorage.getItem('calendar.last-edit') || 0)
     if (cloud && cloud.updatedAt > localLastEdit) {
-      // 云端较新 → 完全采用云端
-      setEvents(cloud.events)
+      // 云端较新 → 完全采用云端（先清洗掉历史脏数据，防止 NaN 日期污染整月）
+      const cleanEvents = sanitizeEvents(cloud.events)
+      const dropped = (cloud.events || []).length - cleanEvents.length
+      setEvents(cleanEvents)
       setCategories(cloud.categories)
-      setSyncDebug(`云端 ${cloud.events.length} 条（云端较新，已采用）`)
+      setSyncDebug(
+        dropped > 0
+          ? `云端 ${cleanEvents.length} 条（已过滤 ${dropped} 条脏数据）`
+          : `云端 ${cleanEvents.length} 条（云端较新，已采用）`,
+      )
+      // 把清洗后的版本回写云端，覆盖脏数据
+      if (dropped > 0) {
+        cloudSaveData({ events: cleanEvents, categories: cloud.categories, updatedAt: Date.now() })
+      }
       return
     }
     // 本地较新 或 云端无数据 → 上传本地
@@ -1480,6 +1501,14 @@ function AssistantView({
   }
 
   const confirmAdd = (ev: ParsedSchedule, msgId: number, idx: number) => {
+    // 校验：date 必须是有效日期（防 AI 识别异常污染日历）
+    if (!isValidDateKey(ev.date)) {
+      reply(
+        `这条没加上 ❌：识别到的日期「${ev.date || '空'}」无效。可以重新上传更清晰的图，或者手动输入。`,
+        { error: true },
+      )
+      return
+    }
     // 优先用 AI 识别的分组名匹配已有分组；匹配不到则用第一个分组
     const catId = ev.category
       ? (categories.find((c) => c.name === ev.category)?.id ?? categories[0]?.id ?? '')

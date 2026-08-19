@@ -1316,11 +1316,22 @@ function AssistantView({
   const [engine, setEngine] = useState<'checking' | 'llm' | 'local'>('checking')
   const [dragOver, setDragOver] = useState(false)
   const [lastEventId, setLastEventId] = useState(0)
+  const [inputHeight, setInputHeight] = useState(80)
   const listRef = useRef<HTMLDivElement>(null)
   const fileRef = useRef<HTMLInputElement>(null)
+  const resizingRef = useRef(false)
+  const startYRef = useRef(0)
+  const startHRef = useRef(80)
 
   // 探测 LLM 代理是否可用
   useEffect(() => {
+    const isLocalhost = /^(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+)$/.test(window.location.hostname)
+    if (!isLocalhost) {
+      // 公网版（CloudStudio / Pages）直接走 Cloudflare Worker，认为 LLM 可用
+      setEngine('llm')
+      return
+    }
+    // 本地版：检测本地 llm-server 是否运行
     fetch('/api/health')
       .then((r) => r.json())
       .then((d) => setEngine(d.hasKey ? 'llm' : 'local'))
@@ -1333,13 +1344,13 @@ function AssistantView({
     const stateText =
       engine === 'llm'
         ? 'AI 引擎已连接（智谱 GLM）✅ 文字、图片都能理解，直接说或拍照即可。'
-        : '当前为本地规则版（LLM 未配置）。文字用规则解析，图片识别需在 server/config.json 填入智谱 API key。'
+        : '当前为本地规则版（LLM 未配置）。文字用规则解析，图片识别需在 server/config.json 填入智谱 API key 后重启本地后端。'
     setMsgs([
       {
         id: nextId(),
         role: 'ai',
         text:
-          `你好，我是日程助手 🤖 直接告诉我你想安排的日程就行，例如：\n「明天下午3点开组会」\n「9月10日 11点到12点半 简历课」\n「下周一上午10点面试」\n\n也可以点 📷 上传课程表 / 通知截图，我帮你识别。识别后我会给你确认，确认无误再加入日历。\n\n${stateText}`,
+          `你好，我是日程助手 🤖 直接告诉我你想安排的日程就行，例如：\n「明天下午3点开会」\n「9月10日 11点到12点半 上课」\n「下周一上午10点考试」\n\n也可以点 📷 上传课程表 / 通知截图，我帮你识别。识别后我会给你确认，确认无误再加入日历。\n\n${stateText}`,
       },
     ])
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1349,6 +1360,28 @@ function AssistantView({
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight })
   }, [msgs, typing])
+
+  // 输入框顶部拖拽调节高度
+  useEffect(() => {
+    const onMove = (e: MouseEvent) => {
+      if (!resizingRef.current) return
+      const delta = startYRef.current - e.clientY
+      const newH = Math.max(40, Math.min(300, startHRef.current + delta))
+      setInputHeight(newH)
+    }
+    const onUp = () => {
+      if (!resizingRef.current) return
+      resizingRef.current = false
+      document.body.style.cursor = ''
+      document.body.style.userSelect = ''
+    }
+    window.addEventListener('mousemove', onMove)
+    window.addEventListener('mouseup', onUp)
+    return () => {
+      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('mouseup', onUp)
+    }
+  }, [])
 
   const reply = (text: string, extra?: Partial<ChatMsg>) =>
     setMsgs((prev) => [...prev, { id: nextId(), role: 'ai', text, ...extra }])
@@ -1395,7 +1428,13 @@ function AssistantView({
                 ? `图片识别失败（LLM 调用出错）：${(llm.hint || '').slice(0, 120)}`
                 : llm.reason === 'FETCH_FAILED'
                   ? '图片识别失败：本地后端连不上，请确认 calendar-app/server 目录下的 llm-server.mjs 在运行。'
-                  : `图片识别失败：${llm.reason || '未知错误'}`,
+                  : llm.reason === 'LLM_PARSE_EMPTY'
+                    ? '图片识别返回无法解析（模型没输出有效 JSON）。可以换张更清晰的图、或把图片压小一点再试。'
+                    : llm.reason === 'LLM_EMPTY'
+                      ? '图片识别返回为空（模型没响应）。可以换张更小的图、或稍后再试。'
+                      : llm.reason === 'LLM_NO_EVENTS'
+                        ? '图片中没有识别到有效日程。可以尝试把图片截得更清晰、或手动输入文字让 AI 识别。'
+                        : `图片识别失败：${llm.reason || '未知错误'}（${(llm.hint || '').slice(0, 80) || '无详情'}）`,
           { error: true },
         )
         return
@@ -1416,7 +1455,7 @@ function AssistantView({
         return
       }
       if (llm.ok && (llm.events?.length ?? 0) === 0) {
-        reply('AI 没理解到日程安排，换个说法试试？也可以直接说「明天下午3点开组会」这种格式。', { error: true })
+        reply('AI 没理解到日程安排，换个说法试试？也可以直接说「明天下午3点开会」这种格式。', { error: true })
         return
       }
       // LLM 失败：回退本地规则版（文本永远有规则兜底）——但要告诉用户为什么走规则版
@@ -1630,6 +1669,17 @@ function AssistantView({
             if (f) onPickImage(f)
           }}
         >
+          <div
+            className="resize-handle"
+            title="上下拖拽调节输入框高度"
+            onMouseDown={(e) => {
+              resizingRef.current = true
+              startYRef.current = e.clientY
+              startHRef.current = inputHeight
+              document.body.style.cursor = 'ns-resize'
+              document.body.style.userSelect = 'none'
+            }}
+          />
           {dragOver && (
             <div className="chat-drag-tip">松开鼠标上传图片</div>
           )}
@@ -1651,8 +1701,9 @@ function AssistantView({
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={sendOnEnter}
-            placeholder={pendingImage ? '可选：补充说明图片里的日程' : '说说什么日程，如：明天下午3点开组会（Enter 发送 · 可拖拽图片到此处）'}
+            placeholder={pendingImage ? '可选：补充说明图片里的日程' : '说说什么日程，如：明天下午3点开会（Enter 发送 · 可拖拽图片到此处）'}
             rows={1}
+            style={{ height: inputHeight }}
           />
         </div>
         <button className="chat-send" onClick={() => send()} type="button" disabled={sendDisabled || typing}>

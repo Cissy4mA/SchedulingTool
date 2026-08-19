@@ -1123,6 +1123,17 @@ body {
   border: 2px dashed transparent;
   transition: all 0.15s;
 }
+.resize-handle {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--border);
+  cursor: ns-resize;
+  flex: none;
+  transition: background 0.15s;
+}
+.resize-handle:hover {
+  background: var(--accent);
+}
 .chat-input-box.drag-over {
   border-color: var(--accent);
   background: var(--accent-soft);
@@ -1218,17 +1229,17 @@ body {
   margin-top: 2px;
 }
 .chat-input {
-  flex: 1;
+  width: 100%;
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 9px 12px;
   font-size: 13.5px;
   font-family: var(--font);
   resize: none;
-  max-height: 110px;
   outline: none;
   color: var(--text-1);
   background: #fff;
+  flex: none;
 }
 .chat-input:focus {
   border-color: var(--accent);

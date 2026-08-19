@@ -307,9 +307,16 @@ export interface LLMResult {
   noteText?: string // update_note 意图：备注内容
 }
 
+// 公网版（部署到 *.pages.dev / *.app.workbuddy.link 等）走 Cloudflare Worker 代理 LLM，
+// 本地版（localhost:5173）走 Vite 代理到本地 llm-server
+const LLM_BASE_URL =
+  typeof window !== 'undefined' && !/^(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+)$/.test(window.location.hostname)
+    ? 'https://calendar-llm-proxy.cissy-kuromikaze.workers.dev'
+    : ''
+
 async function postParse(path: string, body: unknown): Promise<LLMResult> {
   try {
-    const res = await fetch(path, {
+    const res = await fetch(LLM_BASE_URL + path, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
@@ -348,14 +355,14 @@ export async function parseImageWithLLM(
   })
 }
 
-/** 图片压缩：最长边 1280、JPEG 0.85，返回 data URL */
+/** 图片压缩：最长边 800、JPEG 0.70，控制 base64 大小避免触发 Cloudflare WAF */
 export function compressImage(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
     reader.onload = () => {
       const img = new Image()
       img.onload = () => {
-        const MAX = 1280
+        const MAX = 800
         let { width, height } = img
         if (width > MAX || height > MAX) {
           const scale = MAX / Math.max(width, height)
@@ -368,7 +375,7 @@ export function compressImage(file: File): Promise<string> {
         const ctx = canvas.getContext('2d')
         if (!ctx) return reject(new Error('canvas unavailable'))
         ctx.drawImage(img, 0, 0, width, height)
-        resolve(canvas.toDataURL('image/jpeg', 0.85))
+        resolve(canvas.toDataURL('image/jpeg', 0.70))
       }
       img.onerror = () => reject(new Error('image decode failed'))
       img.src = String(reader.result)

@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "VoiceAnywhere 语音输入",
+  "version": "1.0.0",
+  "description": "在任意网页的输入框里用语音输入文字——点右下角麦克风按钮即可",
+  "permissions": ["activeTab", "scripting"],
+  "host_permissions": ["<all_urls>"],
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "css": ["content.css"],
+      "run_at": "document_idle",
+      "all_frames": false
+    }
+  ]
+}

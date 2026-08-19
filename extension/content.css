@@ -1,0 +1,58 @@
+/* VoiceAnywhere 浮动麦克风按钮（隔离样式避免污染宿主页面） */
+:host {
+  all: initial;
+  position: fixed !important;
+  right: 20px !important;
+  bottom: 20px !important;
+  z-index: 2147483647 !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+}
+.va-btn {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: none;
+  background: #39ff14;
+  color: #0a1f0a;
+  font-size: 22px;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s, background 0.15s;
+}
+.va-btn:hover {
+  transform: scale(1.08);
+}
+.va-btn.listening {
+  background: #ef4444;
+  color: #fff;
+  animation: va-pulse 1.2s ease-in-out infinite;
+}
+@keyframes va-pulse {
+  0%, 100% { box-shadow: 0 6px 18px rgba(239, 68, 68, 0.5); }
+  50% { box-shadow: 0 6px 28px rgba(239, 68, 68, 0.9); }
+}
+.va-tip {
+  position: absolute;
+  bottom: 60px;
+  right: 0;
+  background: rgba(30, 30, 30, 0.92);
+  color: #fff;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.2s, transform 0.2s;
+}
+.va-tip.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+.va-tip.error {
+  background: rgba(220, 38, 38, 0.95);
+}

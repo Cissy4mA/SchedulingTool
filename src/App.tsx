@@ -670,7 +670,7 @@ export default function App() {
           </div>
 
           {/* 署名水印 */}
-          <div className="watermark">SchedulingToolEventedbyCisssyXiang</div>
+          <div className="watermark">SchedulingTool</div>
 
           {/* 清空本地缓存（处理 localStorage 残留旧数据） */}
           <button

@@ -1,4 +1,4 @@
-# SchedulingToolEventedbyCisssyXiang
+# SchedulingTool
 
 > AI 驱动的智能日程助手，支持自然语言录入、图片识别、跨设备云同步。
 

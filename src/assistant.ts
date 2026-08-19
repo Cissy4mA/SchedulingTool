@@ -201,8 +201,12 @@ function parseOne(raw: string): ParsedSchedule | null {
   if (!text) return null
 
   // 元数据句子检测：分组/归类说明、备注说明这类不是日程本身，整条跳过
-  // 例：'日历分组是学校'、'分组：工作'、'归类个人'、'备注：X'、'备注一下X'、'备注是X'
-  if (/^(日历分组|分组|归类|分类|备注|备注是|备注一下)\s*[是为：:到就归，,]/.test(text)) return null
+  // 例：'日历分组是学校'、'分组：工作'、'归类个人'、'备注：X'、'备注一下'、'备注是X'
+  // 允许前缀词后跟任意内容（不强制分隔符），让独立的「备注一下」等被识别
+  if (/^(日历分组|分组|归类|分类|备注是|备注一下|备注|提醒是|提醒一下|记得是|记得一下)/.test(text)) return null
+  // 纯修饰语开头的短句（不是事件本身），如 '要带电脑' '需要带电脑' '记得带电脑'
+  // 注意：这些往往紧跟"备注"语句，是备注的内容，应跳过而非视为新日程
+  if (/^(要|需要|记得|提醒|别忘|请|麻烦)\s*[\u4e00-\u9fff].{0,15}$/.test(text) && !/[\d点时上午下午早中午晚上]/.test(text)) return null
   // 纯时间段片段（缺标题）—— 例：'早上9点到10点' 这种只有时间没有事件描述的句子
   if (/^[凌晨早上早晨上午中午下午傍晚晚上晚间夜里]+\s*\d/.test(text) && !/[日程会议约见讲课考试提醒提醒安排记录做去听看买吃饭桌聚活动]/.test(text)) {
     return null
@@ -238,12 +242,16 @@ function parseOne(raw: string): ParsedSchedule | null {
 
   // 标题：剩余文本清理（处理「日程实变函数 / 加个XXX / 安排XXX」等省略句式）
   let title = extractTitle(text)
-  // 用户常见的「指令前缀 + 标题」：「日程X / 加个X / 记一下X / 安排X / 提醒X / 帮我X」 → X 即标题
+  // 用户常见的「指令前缀 + 标题」：「日程X / 加个X / 记一下X / 安排X / 提醒X / 帮我X / 是X」 → X 即标题
+  // + 表示连续多个指令前缀（如「日程是X」「加个X是Y」），一次性剥干净
   title = title.replace(
-    /^(日程|加个|加一|记一下|记下|安排|设个|定个|提醒|新建|帮我|请|麻烦|来一个|来个)\s*/,
+    /^((日程|加个|加一|记一下|记下|安排|设个|定个|提醒|新建|帮我|请|麻烦|来一个|来个|是)\s*)+/,
     '',
   )
   title = title.trim()
+  // 标题剥掉前缀（如「日程」「是」「加个」等）后，再次过元数据过滤——
+  // 例：「日程分组是学校」→ 剥「日程」→ 剩「分组是学校」→ 元数据命中 → 当日 ✓
+  if (/^(日历分组|分组|归类|分类|备注是|备注一下|备注|提醒是|提醒一下|记得是|记得一下)/.test(title)) return null
   if (!title && dateSeg && timeSeg) {
     title = '未命名日程'
   }
@@ -264,7 +272,7 @@ function parseOne(raw: string): ParsedSchedule | null {
 /** 主入口：支持用逗号/分号/换行分隔的多条日程 */
 export function parseSchedule(raw: string): ParseResult {
   const parts = raw
-    .split(/[，,;；\n]/)
+    .split(/[，。,;\n；]/)
     .map((s) => s.trim())
     .filter(Boolean)
 

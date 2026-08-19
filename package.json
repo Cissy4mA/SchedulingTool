@@ -7,7 +7,8 @@
     "dev": "vite",
     "server": "node server/llm-server.mjs",
     "dev:all": "node server/llm-server.mjs & vite",
-    "build": "tsc -b && vite build",
+    "build": "vite build",
+    "typecheck": "tsc -b --noEmit",
     "preview": "vite preview"
   },
   "dependencies": {

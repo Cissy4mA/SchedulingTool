@@ -1,5 +1,5 @@
 #!/bin/bash
-# 日程助手一键启动：Vite 前端 + LLM 后端
+# my schedule一键启动：Vite 前端 + LLM 后端
 # 用法：终端执行  ./start.sh   （或双击在终端中打开）
 cd "$(dirname "$0")"
 

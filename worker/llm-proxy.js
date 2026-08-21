@@ -35,7 +35,7 @@ const existingEventsText = (existing) =>
     : '【关键判断】action 默认 "add"。除非用户明确用「给X加备注」「X的备注是Y」这种结构，否则都按新建日程处理，备注内容放新日程的 note 字段。'
 
 const systemText = (today, categories, existing) =>
-  '你是「日程助手」里的 AI 日程解析器。用户会发来中文句子，你要判断用户意图并提取日程信息。\n' +
+  '你是「my schedule」里的 AI 日程解析器。用户会发来中文句子，你要判断用户意图并提取日程信息。\n' +
   '今天日期：' + today + '（严格以此日期计算「明天/后天/下周一/周X」等相对日期）\n\n' +
   '只输出一个 JSON 对象，不要 markdown 代码块、不要任何解释文字：\n' +
   '{"action":"add 或 update_note","events":[{"title":"日程标题","date":"YYYY-MM-DD","startTime":"HH:MM","endTime":"HH:MM","note":"","category":"分组名或空字符串"}],"note_target":"","note_text":""}\n\n' +
@@ -56,7 +56,7 @@ const systemText = (today, categories, existing) =>
   '特别说明：用户常用省略句式「日程XXX」「加个XXX」「记一下XXX」「安排XXX」「提醒XXX」「帮我加XXX」「来个XXX」——其中「日程/加个/记一下/安排/提醒/帮我加/来个」等是提示词，**title 字段只取 XXX 这部分，不要把提示词本身当成标题**（否则会出现 title="日程标题"这种错误）。'
 
 const systemVision = (today, categories) =>
-  '你是「日程助手」里的 AI 日程解析器。用户发来一张图片（可能是课程表、活动通知、聊天记录、手写便签、图书馆导览通知等），请识别其中所有的日程安排（日期 + 时间 + 事项）。如同时有用户补充文字，也一并参考。\n' +
+  '你是「my schedule」里的 AI 日程解析器。用户发来一张图片（可能是课程表、活动通知、聊天记录、手写便签、图书馆导览通知等），请识别其中所有的日程安排（日期 + 时间 + 事项）。如同时有用户补充文字，也一并参考。\n' +
   '今天日期：' + today + '（严格以此日期计算相对日期）\n\n' +
   '只输出一个 JSON 对象，不要 markdown 代码块、不要任何解释文字：\n' +
   '{"events":[{"title":"日程标题","date":"YYYY-MM-DD","startTime":"HH:MM","endTime":"HH:MM","note":"","category":"分组名或空字符串"}]}\n\n' +

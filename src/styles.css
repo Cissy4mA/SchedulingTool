@@ -978,6 +978,9 @@ body {
   font-size: 12px;
   color: var(--text-3);
   line-height: 1.4;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 .dd-tag {
   flex: 0 0 auto;

@@ -523,7 +523,7 @@ export default function App() {
             <span className="brand-mark">
               <CalendarIcon size={16} color="#0a1f0a" />
             </span>
-            <span className="brand-name">日程助手</span>
+            <span className="brand-name">my schedule</span>
           </div>
 
           <button className="new-btn" onClick={() => openForm(selectedDate)}>
@@ -1371,7 +1371,7 @@ function AssistantView({
         id: nextId(),
         role: 'ai',
         text:
-          `你好，我是日程助手 🤖 直接告诉我你想安排的日程就行，例如：\n「明天下午3点开会」\n「9月10日 11点到12点半 上课」\n「下周一上午10点考试」\n\n也可以点 📷 上传课程表 / 通知截图，我帮你识别。识别后我会给你确认，确认无误再加入日历。\n\n${stateText}`,
+          `你好，我是my schedule 🤖 直接告诉我你想安排的日程就行，例如：\n「明天下午3点开会」\n「9月10日 11点到12点半 上课」\n「下周一上午10点考试」\n\n也可以点 📷 上传课程表 / 通知截图，我帮你识别。识别后我会给你确认，确认无误再加入日历。\n\n${stateText}`,
       },
     ])
     // eslint-disable-next-line react-hooks/exhaustive-deps

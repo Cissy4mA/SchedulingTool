@@ -250,13 +250,13 @@ export default function EventForm({
         <label className="field-label">重复（每周）</label>
         <div className="repeat-row">
           {[
-            { label: '一', value: 1 },
-            { label: '二', value: 2 },
-            { label: '三', value: 3 },
-            { label: '四', value: 4 },
-            { label: '五', value: 5 },
-            { label: '六', value: 6 },
             { label: '日', value: 0 },
+            { label: '1', value: 1 },
+            { label: '2', value: 2 },
+            { label: '3', value: 3 },
+            { label: '4', value: 4 },
+            { label: '5', value: 5 },
+            { label: '6', value: 6 },
           ].map(({ label, value }) => (
             <button
               key={value}
@@ -264,7 +264,7 @@ export default function EventForm({
               className={`repeat-day${repeatDays.includes(value) ? ' active' : ''}${editingId ? ' disabled' : ''}`}
               onClick={() => toggleRepeatDay(value)}
               disabled={!!editingId}
-              title={editingId ? '编辑模式下不能修改重复规则' : `每周${label}`}
+              title={editingId ? '编辑模式下不能修改重复规则' : `每周${label === '日' ? '日' : label}`}
             >
               {label}
             </button>

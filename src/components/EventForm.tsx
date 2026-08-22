@@ -278,20 +278,31 @@ export default function EventForm({
             { label: '六', value: 6 },
           ].map(({ label, value }) => {
             const checked = repeatDays.includes(value)
+            const disabled = !!editingId
             return (
-              <button
+              <div
                 key={value}
-                type="button"
-                className={`repeat-day${checked ? ' active' : ''}${editingId ? ' disabled' : ''}`}
-                disabled={!!editingId}
-                onClick={() => toggleRepeatDay(value)}
-                title={editingId ? '编辑模式下不能修改重复规则' : `每周${label}`}
+                role="button"
+                aria-pressed={checked}
+                tabIndex={disabled ? -1 : 0}
+                className={`repeat-day${checked ? ' active' : ''}${disabled ? ' disabled' : ''}`}
+                onClick={() => !disabled && toggleRepeatDay(value)}
+                onKeyDown={(e) => {
+                  if (!disabled && (e.key === 'Enter' || e.key === ' ')) {
+                    e.preventDefault()
+                    toggleRepeatDay(value)
+                  }
+                }}
+                title={disabled ? '编辑模式下不能修改重复规则' : `每周${label}`}
               >
                 {label}
-              </button>
+              </div>
             )
           })}
         </div>
+        {editingId && (
+          <div className="repeat-hint">编辑模式下不能修改重复规则</div>
+        )}
         {repeatDays.length > 0 && !editingId && (
           <div className="repeat-range">
             <div className="repeat-range-row">

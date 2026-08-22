@@ -10,12 +10,15 @@ Environment:
 """
 import os
 import subprocess
+from datetime import datetime
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 OUT_DIR = os.environ.get("OUT_DIR", "dist")
 GLASS = os.environ.get("GLASS", "") == "1"
 OUT = os.path.join(BASE, OUT_DIR)
 os.makedirs(OUT, exist_ok=True)
+
+BUILD_TIME = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 TMP_JS = os.path.join(OUT, ".bundle-tmp.js")
 TMP_CSS = os.path.join(OUT, ".bundle-tmp.css")
@@ -57,12 +60,15 @@ html = f"""<!DOCTYPE html>
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta http-equiv="Cache-Control" content="no-store" />
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
 <title>my schedule</title>
 {css_tag}
 </head>
 <body{body_class}>
 <div id="root"></div>
+<div id="build-badge">build: {BUILD_TIME}</div>
 <script>
 window.addEventListener("error", function(e){{
   var pre=document.createElement("pre");

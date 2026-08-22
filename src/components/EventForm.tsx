@@ -278,24 +278,17 @@ export default function EventForm({
             { label: '六', value: 6 },
           ].map(({ label, value }) => {
             const checked = repeatDays.includes(value)
-            const id = `repeat-day-${value}`
             return (
-              <label
+              <button
                 key={value}
-                htmlFor={id}
+                type="button"
                 className={`repeat-day${checked ? ' active' : ''}${editingId ? ' disabled' : ''}`}
+                disabled={!!editingId}
+                onClick={() => toggleRepeatDay(value)}
                 title={editingId ? '编辑模式下不能修改重复规则' : `每周${label}`}
               >
-                <input
-                  id={id}
-                  type="checkbox"
-                  className="repeat-checkbox"
-                  checked={checked}
-                  disabled={!!editingId}
-                  onChange={() => toggleRepeatDay(value)}
-                />
                 {label}
-              </label>
+              </button>
             )
           })}
         </div>

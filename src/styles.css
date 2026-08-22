@@ -859,6 +859,8 @@ body {
   color: var(--text-2);
   font-size: 13px;
   font-weight: 500;
+  font-family: inherit;
+  padding: 0;
   cursor: pointer;
   transition: all 0.12s;
   position: relative;
@@ -873,7 +875,6 @@ body {
 .repeat-day:active {
   transform: scale(0.96);
 }
-.repeat-day:has(.repeat-checkbox:checked),
 .repeat-day.active {
   background: var(--accent);
   color: var(--accent-text);
@@ -885,19 +886,6 @@ body {
   opacity: 0.5;
   cursor: not-allowed;
   transform: none;
-}
-.repeat-checkbox {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  cursor: pointer;
-  -webkit-appearance: none;
-  appearance: none;
 }
 .repeat-range {
   margin-top: 10px;

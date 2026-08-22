@@ -43,7 +43,7 @@ export default function EventForm({
   setNote: (v: string) => void
   focusToken: number
   editingId: string | null
-  onSave: (e: CalendarEvent) => void
+  onSave: (e: CalendarEvent, repeat?: number[]) => void
   onDelete?: (id: string) => void
   onClear: () => void
   onCancel?: () => void
@@ -56,24 +56,40 @@ export default function EventForm({
   const [editCatName, setEditCatName] = useState('')
   const [editCatColor, setEditCatColor] = useState('#39FF14')
 
+  // 重复规则：0=周日 1=周一 ... 6=周六；编辑模式不支持修改重复
+  const [repeatDays, setRepeatDays] = useState<number[]>([])
+  useEffect(() => {
+    setRepeatDays([])
+  }, [editingId])
+
   useEffect(() => {
     titleRef.current?.focus()
   }, [focusToken])
+
+  const toggleRepeatDay = (d: number) => {
+    if (editingId) return
+    setRepeatDays((prev) =>
+      prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d],
+    )
+  }
 
   const save = () => {
     if (!title.trim()) {
       window.alert('请填写标题')
       return
     }
-    onSave({
-      id: editingId ?? 'e' + Date.now(),
-      title: title.trim(),
-      date,
-      startTime: start,
-      endTime: end,
-      note: note.trim() || undefined,
-      categoryId,
-    })
+    onSave(
+      {
+        id: editingId ?? 'e' + Date.now(),
+        title: title.trim(),
+        date,
+        startTime: start,
+        endTime: end,
+        note: note.trim() || undefined,
+        categoryId,
+      },
+      editingId ? undefined : repeatDays,
+    )
   }
 
   const handleAddCategory = (name: string, color: string) => {
@@ -228,6 +244,35 @@ export default function EventForm({
             onChange={(e) => setEnd(e.target.value)}
           />
         </div>
+      </div>
+
+      <div>
+        <label className="field-label">重复（每周）</label>
+        <div className="repeat-row">
+          {[
+            { label: '一', value: 1 },
+            { label: '二', value: 2 },
+            { label: '三', value: 3 },
+            { label: '四', value: 4 },
+            { label: '五', value: 5 },
+            { label: '六', value: 6 },
+            { label: '日', value: 0 },
+          ].map(({ label, value }) => (
+            <button
+              key={value}
+              type="button"
+              className={`repeat-day${repeatDays.includes(value) ? ' active' : ''}${editingId ? ' disabled' : ''}`}
+              onClick={() => toggleRepeatDay(value)}
+              disabled={!!editingId}
+              title={editingId ? '编辑模式下不能修改重复规则' : `每周${label}`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        {repeatDays.length > 0 && !editingId && (
+          <div className="repeat-hint">将生成未来 12 周内的重复日程</div>
+        )}
       </div>
 
       <div>

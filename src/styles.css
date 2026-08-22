@@ -844,6 +844,40 @@ body {
   color: var(--text-4);
   font-size: 13px;
 }
+
+.repeat-row {
+  display: flex;
+  gap: 6px;
+}
+.repeat-day {
+  flex: 1;
+  height: 36px;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-2);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+.repeat-day.active {
+  background: var(--accent);
+  color: var(--accent-text);
+  border-color: transparent;
+  font-weight: 600;
+  box-shadow: var(--shadow-accent);
+}
+.repeat-day.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.repeat-hint {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--text-3);
+}
+
 .btn-row {
   display: flex;
   gap: 12px;
@@ -1835,3 +1869,196 @@ body {
   font-family: var(--font);
 }
 .sync-clear:hover { color: #dc2626; border-color: #dc2626; }
+
+/* ===== 液态玻璃主题（Liquid Glass） =====
+   仅在 <body class="glass"> 时启用，不影响默认浅色主题。
+   参考 Apple Liquid Glass：高通透 + 强高光 + 圆润厚实的半透明块。 */
+
+/* 舞台：柔和低饱和的流光背景，去掉紫色 */
+body.glass .stage {
+  background:
+    radial-gradient(1200px 800px at 12% 12%, rgba(190, 225, 255, 0.55), transparent 55%),
+    radial-gradient(1100px 720px at 88% 16%, rgba(255, 210, 220, 0.42), transparent 50%),
+    radial-gradient(1000px 760px at 72% 88%, rgba(195, 245, 255, 0.50), transparent 55%),
+    radial-gradient(900px 680px at 22% 92%, rgba(235, 225, 255, 0.32), transparent 50%),
+    radial-gradient(800px 600px at 52% 45%, rgba(255, 245, 220, 0.30), transparent 50%),
+    linear-gradient(180deg, #f1f5fa 0%, #e8eef6 100%);
+}
+
+/* 主容器：最通透的大玻璃块 */
+body.glass .app {
+  background: rgba(255, 255, 255, 0.10);
+  border: 1px solid rgba(255, 255, 255, 0.50);
+  border-radius: 28px;
+  -webkit-backdrop-filter: blur(48px) saturate(210%);
+  backdrop-filter: blur(48px) saturate(210%);
+  box-shadow:
+    inset 0 1px 2px rgba(255, 255, 255, 0.95),
+    inset 0 -1px 3px rgba(80, 90, 130, 0.14),
+    0 24px 70px rgba(20, 30, 60, 0.16);
+  position: relative;
+  overflow: hidden;
+}
+body.glass .app::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.52) 0%, rgba(255, 255, 255, 0) 30%);
+}
+
+/* 大面板：侧栏 / 工具栏 / AI 面板等，更通透的玻璃块 */
+body.glass .sidebar,
+body.glass .toolbar,
+body.glass .form-panel,
+body.glass .dd-card,
+body.glass .list,
+body.glass .list-card,
+body.glass .assistant-wrap,
+body.glass .rem-banner,
+body.glass .chat-input-row,
+body.glass .auth-modal {
+  background-color: transparent;
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.06)),
+    linear-gradient(160deg, rgba(255, 255, 255, 0.88) 0%, rgba(255, 255, 255, 0.28) 38%, rgba(175, 185, 205, 0.18) 100%);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  border: 1px solid transparent;
+  border-radius: 18px;
+  -webkit-backdrop-filter: blur(24px) saturate(190%);
+  backdrop-filter: blur(24px) saturate(190%);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.96),
+    inset 0 -1px 2px rgba(80, 90, 130, 0.13),
+    inset 1px 0 1px rgba(255, 255, 255, 0.32),
+    inset -1px 0 1px rgba(80, 90, 130, 0.08),
+    0 8px 26px rgba(20, 30, 60, 0.10);
+  position: relative;
+  overflow: hidden;
+}
+body.glass .sidebar::after,
+body.glass .toolbar::after,
+body.glass .form-panel::after,
+body.glass .dd-card::after,
+body.glass .list::after,
+body.glass .list-card::after,
+body.glass .assistant-wrap::after,
+body.glass .rem-banner::after,
+body.glass .chat-input-row::after,
+body.glass .auth-modal::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.48) 0%, rgba(255, 255, 255, 0) 28%);
+}
+
+/* 日历格子：高通透小玻璃砖，能看到背后流光 */
+body.glass .cell {
+  background-color: transparent;
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.05)),
+    linear-gradient(165deg, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0.30) 36%, rgba(175, 185, 205, 0.16) 100%);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  border: 1px solid transparent;
+  border-radius: 16px;
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  backdrop-filter: blur(12px) saturate(180%);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.96),
+    inset 0 -1px 2px rgba(80, 90, 130, 0.11),
+    inset 1px 0 1px rgba(255, 255, 255, 0.30),
+    inset -1px 0 1px rgba(80, 90, 130, 0.06),
+    0 4px 12px rgba(20, 30, 60, 0.07);
+  position: relative;
+  overflow: hidden;
+}
+body.glass .cell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.60) 0%, rgba(255, 255, 255, 0) 24%);
+}
+body.glass .cell:hover {
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 1),
+    inset 0 -1px 2px rgba(80, 90, 130, 0.13),
+    inset 1px 0 1px rgba(255, 255, 255, 0.32),
+    inset -1px 0 1px rgba(80, 90, 130, 0.07),
+    0 6px 18px rgba(20, 30, 60, 0.10);
+}
+body.glass .cell.out {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+body.glass .cell.out::after { display: none; }
+
+/* 今日 / 选中：跟随主题色（而不是写死绿色） */
+body.glass .cell.today {
+  background-image:
+    linear-gradient(180deg, color-mix(in srgb, var(--accent-soft) 45%, transparent), color-mix(in srgb, var(--accent-soft) 12%, transparent)),
+    linear-gradient(165deg, rgba(255, 255, 255, 0.92) 0%, color-mix(in srgb, var(--accent) 32%, rgba(255, 255, 255, 0.35)) 40%, rgba(175, 185, 205, 0.18) 100%);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.96),
+    inset 0 -1px 2px color-mix(in srgb, var(--accent) 22%, transparent),
+    0 4px 14px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+body.glass .cell.selected {
+  background-image:
+    linear-gradient(180deg, color-mix(in srgb, var(--accent-soft) 35%, transparent), color-mix(in srgb, var(--accent-soft) 8%, transparent)),
+    linear-gradient(165deg, rgba(255, 255, 255, 0.92) 0%, color-mix(in srgb, var(--accent) 26%, rgba(255, 255, 255, 0.32)) 44%, rgba(175, 185, 205, 0.16) 100%);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.96),
+    inset 0 -1px 2px color-mix(in srgb, var(--accent) 18%, transparent),
+    0 0 0 2px color-mix(in srgb, var(--accent) 26%, transparent),
+    0 4px 14px color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+/* 主内容区透明，让舞台流光透过来 */
+body.glass .cal-area {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+/* hover：卡片保持厚度 + 主题色外晕 */
+body.glass .dd-card.clickable:hover,
+body.glass .list-card.clickable:hover {
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 1),
+    inset 0 -1px 2px rgba(80, 90, 130, 0.15),
+    inset 1px 0 1px rgba(255, 255, 255, 0.35),
+    inset -1px 0 1px rgba(80, 90, 130, 0.08),
+    0 12px 34px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+/* AI 气泡：轻玻璃 */
+body.glass .chat-bubble.ai {
+  background: rgba(243, 244, 246, 0.40);
+  border: 1px solid rgba(255, 255, 255, 0.48);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.72),
+    inset 0 -1px 2px rgba(80, 90, 130, 0.08);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+/* 输入框：轻玻璃 */
+body.glass .chat-input-box {
+  background: rgba(255, 255, 255, 0.32);
+  border: 1px solid rgba(255, 255, 255, 0.50);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.82),
+    inset 0 -1px 2px rgba(80, 90, 130, 0.08);
+}

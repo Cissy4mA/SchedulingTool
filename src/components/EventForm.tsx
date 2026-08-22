@@ -56,7 +56,7 @@ export default function EventForm({
   const [editCatName, setEditCatName] = useState('')
   const [editCatColor, setEditCatColor] = useState('#39FF14')
 
-  // 重复规则：0=周日 1=周一 ... 6=周六；编辑模式不支持修改重复
+  // 重复规则：0=周日 1=周一 ... 6=周六；新建/编辑均支持修改
   const [repeatDays, setRepeatDays] = useState<number[]>([])
   const [repeatStart, setRepeatStart] = useState<string>(date)
   const [repeatEnd, setRepeatEnd] = useState<string>(date)
@@ -64,7 +64,7 @@ export default function EventForm({
     setRepeatDays([])
     setRepeatStart(date)
     setRepeatEnd(date)
-  }, [editingId, date])
+  }, [date])
 
   // 选中重复后，若结束日期不晚于开始日期，自动往后延 12 周
   useEffect(() => {
@@ -80,7 +80,6 @@ export default function EventForm({
   }, [focusToken])
 
   const toggleRepeatDay = (d: number) => {
-    if (editingId) return
     setRepeatDays((prev) =>
       prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d],
     )
@@ -105,7 +104,7 @@ export default function EventForm({
         note: note.trim() || undefined,
         categoryId,
       },
-      editingId || repeatDays.length === 0
+      repeatDays.length === 0
         ? undefined
         : { days: repeatDays, start: repeatStart, end: repeatEnd },
     )
@@ -278,32 +277,28 @@ export default function EventForm({
             { label: '六', value: 6 },
           ].map(({ label, value }) => {
             const checked = repeatDays.includes(value)
-            const disabled = !!editingId
             return (
               <div
                 key={value}
                 role="button"
                 aria-pressed={checked}
-                tabIndex={disabled ? -1 : 0}
-                className={`repeat-day${checked ? ' active' : ''}${disabled ? ' disabled' : ''}`}
-                onClick={() => !disabled && toggleRepeatDay(value)}
+                tabIndex={0}
+                className={`repeat-day${checked ? ' active' : ''}`}
+                onClick={() => toggleRepeatDay(value)}
                 onKeyDown={(e) => {
-                  if (!disabled && (e.key === 'Enter' || e.key === ' ')) {
+                  if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault()
                     toggleRepeatDay(value)
                   }
                 }}
-                title={disabled ? '编辑模式下不能修改重复规则' : `每周${label}`}
+                title={`每周${label}`}
               >
                 {label}
               </div>
             )
           })}
         </div>
-        {editingId && (
-          <div className="repeat-hint">编辑模式下不能修改重复规则</div>
-        )}
-        {repeatDays.length > 0 && !editingId && (
+        {repeatDays.length > 0 && (
           <div className="repeat-range">
             <div className="repeat-range-row">
               <span className="repeat-range-label">从</span>

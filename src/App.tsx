@@ -334,7 +334,6 @@ export default function App() {
     let toSave: CalendarEvent[] = []
 
     if (
-      !isEdit &&
       repeat &&
       repeat.days.length > 0 &&
       isValidDateKey(e.date) &&
@@ -369,8 +368,8 @@ export default function App() {
     }
 
     setEvents((prev) => {
-      if (isEdit) return prev.map((x) => (x.id === editingId ? toSave[0] : x))
-      return [...prev, ...toSave]
+      const withoutCurrent = isEdit ? prev.filter((x) => x.id !== editingId) : prev
+      return [...withoutCurrent, ...toSave]
     })
 
     const firstDate = toSave[0].date

@@ -868,10 +868,12 @@ body {
   justify-content: center;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
+  overflow: hidden;
 }
 .repeat-day:active {
   transform: scale(0.96);
 }
+.repeat-day:has(.repeat-checkbox:checked),
 .repeat-day.active {
   background: var(--accent);
   color: var(--accent-text);
@@ -886,14 +888,16 @@ body {
 }
 .repeat-checkbox {
   position: absolute;
-  width: 1px;
-  height: 1px;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   opacity: 0;
   margin: 0;
   padding: 0;
   border: 0;
-  clip: rect(0 0 0 0);
-  overflow: hidden;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
 }
 .repeat-range {
   margin-top: 10px;

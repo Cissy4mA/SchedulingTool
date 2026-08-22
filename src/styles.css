@@ -862,8 +862,12 @@ body {
   cursor: pointer;
   transition: all 0.12s;
   position: relative;
-  z-index: 1;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
 .repeat-day:active {
   transform: scale(0.96);
@@ -879,6 +883,14 @@ body {
   opacity: 0.5;
   cursor: not-allowed;
   transform: none;
+}
+.repeat-checkbox {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  margin: 0;
+  pointer-events: none;
 }
 .repeat-hint {
   margin-top: 6px;

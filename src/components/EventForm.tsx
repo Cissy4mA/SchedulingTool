@@ -251,24 +251,31 @@ export default function EventForm({
         <div className="repeat-row">
           {[
             { label: '日', value: 0 },
-            { label: '1', value: 1 },
-            { label: '2', value: 2 },
-            { label: '3', value: 3 },
-            { label: '4', value: 4 },
-            { label: '5', value: 5 },
-            { label: '6', value: 6 },
-          ].map(({ label, value }) => (
-            <button
-              key={value}
-              type="button"
-              className={`repeat-day${repeatDays.includes(value) ? ' active' : ''}${editingId ? ' disabled' : ''}`}
-              onClick={() => toggleRepeatDay(value)}
-              disabled={!!editingId}
-              title={editingId ? '编辑模式下不能修改重复规则' : `每周${label === '日' ? '日' : label}`}
-            >
-              {label}
-            </button>
-          ))}
+            { label: '一', value: 1 },
+            { label: '二', value: 2 },
+            { label: '三', value: 3 },
+            { label: '四', value: 4 },
+            { label: '五', value: 5 },
+            { label: '六', value: 6 },
+          ].map(({ label, value }) => {
+            const checked = repeatDays.includes(value)
+            return (
+              <label
+                key={value}
+                className={`repeat-day${checked ? ' active' : ''}${editingId ? ' disabled' : ''}`}
+                title={editingId ? '编辑模式下不能修改重复规则' : `每周${label}`}
+              >
+                <input
+                  type="checkbox"
+                  className="repeat-checkbox"
+                  checked={checked}
+                  disabled={!!editingId}
+                  onChange={() => toggleRepeatDay(value)}
+                />
+                {label}
+              </label>
+            )
+          })}
         </div>
         {repeatDays.length > 0 && !editingId && (
           <div className="repeat-hint">将生成未来 12 周内的重复日程</div>

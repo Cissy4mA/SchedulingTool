@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Close } from './icons'
 import { Category, CalendarEvent } from '../types'
-import { readableText } from '../utils'
+import { readableText, toKey } from '../utils'
 import CategoryAdd from './CategoryAdd'
 
 export default function EventForm({
@@ -43,7 +43,7 @@ export default function EventForm({
   setNote: (v: string) => void
   focusToken: number
   editingId: string | null
-  onSave: (e: CalendarEvent, repeat?: number[]) => void
+  onSave: (e: CalendarEvent, repeat?: { days: number[]; start: string; end: string }) => void
   onDelete?: (id: string) => void
   onClear: () => void
   onCancel?: () => void
@@ -58,9 +58,22 @@ export default function EventForm({
 
   // 重复规则：0=周日 1=周一 ... 6=周六；编辑模式不支持修改重复
   const [repeatDays, setRepeatDays] = useState<number[]>([])
+  const [repeatStart, setRepeatStart] = useState<string>(date)
+  const [repeatEnd, setRepeatEnd] = useState<string>(date)
   useEffect(() => {
     setRepeatDays([])
-  }, [editingId])
+    setRepeatStart(date)
+    setRepeatEnd(date)
+  }, [editingId, date])
+
+  // 选中重复后，若结束日期不晚于开始日期，自动往后延 12 周
+  useEffect(() => {
+    if (repeatDays.length > 0 && repeatEnd <= repeatStart) {
+      const d = new Date(repeatStart + 'T00:00:00')
+      d.setDate(d.getDate() + 7 * 12)
+      setRepeatEnd(toKey(d))
+    }
+  }, [repeatDays.length, repeatStart, repeatEnd])
 
   useEffect(() => {
     titleRef.current?.focus()
@@ -78,6 +91,10 @@ export default function EventForm({
       window.alert('请填写标题')
       return
     }
+    if (repeatDays.length > 0 && repeatStart > repeatEnd) {
+      window.alert('重复结束日期不能早于开始日期')
+      return
+    }
     onSave(
       {
         id: editingId ?? 'e' + Date.now(),
@@ -88,7 +105,9 @@ export default function EventForm({
         note: note.trim() || undefined,
         categoryId,
       },
-      editingId ? undefined : repeatDays,
+      editingId || repeatDays.length === 0
+        ? undefined
+        : { days: repeatDays, start: repeatStart, end: repeatEnd },
     )
   }
 
@@ -259,13 +278,16 @@ export default function EventForm({
             { label: '六', value: 6 },
           ].map(({ label, value }) => {
             const checked = repeatDays.includes(value)
+            const id = `repeat-day-${value}`
             return (
               <label
                 key={value}
+                htmlFor={id}
                 className={`repeat-day${checked ? ' active' : ''}${editingId ? ' disabled' : ''}`}
                 title={editingId ? '编辑模式下不能修改重复规则' : `每周${label}`}
               >
                 <input
+                  id={id}
                   type="checkbox"
                   className="repeat-checkbox"
                   checked={checked}
@@ -278,7 +300,26 @@ export default function EventForm({
           })}
         </div>
         {repeatDays.length > 0 && !editingId && (
-          <div className="repeat-hint">将生成未来 12 周内的重复日程</div>
+          <div className="repeat-range">
+            <div className="repeat-range-row">
+              <span className="repeat-range-label">从</span>
+              <input
+                type="date"
+                className="date-input"
+                value={repeatStart}
+                onChange={(e) => setRepeatStart(e.target.value)}
+              />
+            </div>
+            <div className="repeat-range-row">
+              <span className="repeat-range-label">到</span>
+              <input
+                type="date"
+                className="date-input"
+                value={repeatEnd}
+                onChange={(e) => setRepeatEnd(e.target.value)}
+              />
+            </div>
+          </div>
         )}
       </div>
 

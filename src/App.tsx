@@ -327,26 +327,33 @@ export default function App() {
       .map((e) => ({ title: e.title, date: e.date }))
   }, [events])
 
-  // 保存：编辑模式替换原事件，新建模式追加；新建时支持按周几重复生成
-  const REPEAT_WEEKS = 12
-  const saveEvent = (e: CalendarEvent, repeat?: number[]) => {
+  // 保存：编辑模式替换原事件，新建模式追加；新建时支持按周几+日期范围重复生成
+  const saveEvent = (e: CalendarEvent, repeat?: { days: number[]; start: string; end: string }) => {
     const isEdit = !!editingId
     const base = { ...e, updatedAt: Date.now() }
     let toSave: CalendarEvent[] = []
 
-    if (!isEdit && repeat && repeat.length > 0 && isValidDateKey(e.date)) {
-      const baseDate = new Date(e.date + 'T00:00:00')
+    if (
+      !isEdit &&
+      repeat &&
+      repeat.days.length > 0 &&
+      isValidDateKey(e.date) &&
+      isValidDateKey(repeat.start) &&
+      isValidDateKey(repeat.end)
+    ) {
+      const rangeStart = new Date(repeat.start + 'T00:00:00')
+      const rangeEnd = new Date(repeat.end + 'T00:00:00')
       const seen = new Set<string>()
-      repeat.forEach((dow) => {
-        const d = new Date(baseDate)
+      repeat.days.forEach((dow) => {
+        const d = new Date(rangeStart)
         while (d.getDay() !== dow) d.setDate(d.getDate() + 1)
-        for (let w = 0; w < REPEAT_WEEKS; w++) {
+        while (d.getTime() <= rangeEnd.getTime()) {
           const key = toKey(d)
           if (!seen.has(key)) {
             seen.add(key)
             toSave.push({
               ...base,
-              id: `e${Date.now()}_${w}_${dow}_${key}`,
+              id: `e${Date.now()}_${dow}_${key}`,
               date: key,
             })
           }

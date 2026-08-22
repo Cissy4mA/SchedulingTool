@@ -13,4 +13,5 @@ export interface CalendarEvent {
   note?: string
   categoryId: string // 关联自定义分组；空字符串表示「未分类」
   updatedAt?: number // 最后修改时间戳（毫秒），用于云同步冲突解决
+  repeatGroup?: string // 重复组 ID；同一批重复生成的日程共享，便于整组编辑/删除
 }

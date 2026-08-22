@@ -114,6 +114,9 @@ export default function App() {
   const [end, setEnd] = useState('10:00')
   const [note, setNote] = useState('')
   const [focusToken, setFocusToken] = useState(0)
+  const [formInitialRepeat, setFormInitialRepeat] = useState<
+    { days: number[]; start: string; end: string; groupId?: string } | undefined
+  >(undefined)
 
   // 等比缩放：宽屏（≥768px）将 1440×900 画布整体缩放居中；窄屏（手机）走响应式布局，不缩放
   useEffect(() => {
@@ -185,8 +188,6 @@ export default function App() {
     : viewDate
   const year = safeViewDate.getFullYear()
   const month = safeViewDate.getMonth()
-  const safeSelectedDate = isValidDateKey(selectedDate) ? selectedDate : toKey(TODAY)
-
   const cells = useMemo(() => getMonthMatrix(year, month), [year, month])
 
   // 周视图：以 selectedDate 为锚定位该周日~周六（用户最近操作的日期所在周）
@@ -245,13 +246,14 @@ export default function App() {
   // 打开新建表单（预填某天）
   const openForm = (dateKey?: string) => {
     setEditingId(null)
+    setFormInitialRepeat(undefined)
     clearForm()
     setFormDate(dateKey || selectedDate)
     setFocusToken((t) => t + 1)
     setRightMode('form')
   }
 
-  // 打开编辑表单（预填某条已存在日程）
+  // 打开编辑表单（预填某条已存在日程；如属于重复组，回填当初的周几+起止日期）
   const editEvent = (ev: CalendarEvent) => {
     setTitle(ev.title)
     setCategoryId(ev.categoryId)
@@ -260,6 +262,21 @@ export default function App() {
     setEnd(ev.endTime)
     setNote(ev.note || '')
     setEditingId(ev.id)
+    if (ev.repeatGroup) {
+      const groupEvents = events.filter((e) => e.repeatGroup === ev.repeatGroup)
+      const days = Array.from(
+        new Set(groupEvents.map((e) => new Date(e.date + 'T00:00:00').getDay())),
+      ).sort((a, b) => a - b)
+      const dates = groupEvents.map((e) => e.date).sort()
+      setFormInitialRepeat({
+        days,
+        start: dates[0] || ev.date,
+        end: dates[dates.length - 1] || ev.date,
+        groupId: ev.repeatGroup,
+      })
+    } else {
+      setFormInitialRepeat(undefined)
+    }
     const d = new Date(ev.date + 'T00:00:00')
     setViewDate(new Date(d.getFullYear(), d.getMonth(), 1))
     setFocusToken((t) => t + 1)
@@ -327,19 +344,21 @@ export default function App() {
       .map((e) => ({ title: e.title, date: e.date }))
   }, [events])
 
-  // 保存：编辑模式替换原事件，新建模式追加；新建时支持按周几+日期范围重复生成
+  // 保存：支持单条或按周几+日期范围生成重复组；编辑重复日程时可整组更新/取消重复
   const saveEvent = (e: CalendarEvent, repeat?: { days: number[]; start: string; end: string }) => {
     const isEdit = !!editingId
     const base = { ...e, updatedAt: Date.now() }
     let toSave: CalendarEvent[] = []
+    const groupId = e.repeatGroup || 'g' + Date.now()
 
-    if (
+    const hasRepeat =
       repeat &&
       repeat.days.length > 0 &&
       isValidDateKey(e.date) &&
       isValidDateKey(repeat.start) &&
       isValidDateKey(repeat.end)
-    ) {
+
+    if (hasRepeat) {
       const rangeStart = new Date(repeat.start + 'T00:00:00')
       const rangeEnd = new Date(repeat.end + 'T00:00:00')
       const seen = new Set<string>()
@@ -354,6 +373,7 @@ export default function App() {
               ...base,
               id: `e${Date.now()}_${dow}_${key}`,
               date: key,
+              repeatGroup: groupId,
             })
           }
           d.setDate(d.getDate() + 7)
@@ -364,12 +384,19 @@ export default function App() {
           a.date.localeCompare(b.date) || a.startTime.localeCompare(b.startTime),
       )
     } else {
-      toSave.push(base)
+      // 无重复：取消 group，仅保留当前这一条
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { repeatGroup: _rg, ...single } = base
+      toSave.push({ ...single, id: editingId ?? base.id })
     }
 
     setEvents((prev) => {
-      const withoutCurrent = isEdit ? prev.filter((x) => x.id !== editingId) : prev
-      return [...withoutCurrent, ...toSave]
+      // 编辑时：先删掉原事件；如果它属于某个重复组，再删掉整组旧事件
+      let next = isEdit ? prev.filter((x) => x.id !== editingId) : prev
+      if (isEdit && e.repeatGroup) {
+        next = next.filter((x) => x.repeatGroup !== e.repeatGroup)
+      }
+      return [...next, ...toSave]
     })
 
     const firstDate = toSave[0].date
@@ -942,6 +969,7 @@ export default function App() {
                 setNote={setNote}
                 focusToken={focusToken}
                 editingId={editingId}
+                initialRepeat={formInitialRepeat}
                 onSave={saveEvent}
                 onDelete={deleteEvent}
                 onClear={clearForm}

@@ -21,6 +21,7 @@ export default function EventForm({
   setNote,
   focusToken,
   editingId,
+  initialRepeat,
   onSave,
   onDelete,
   onClear,
@@ -48,6 +49,7 @@ export default function EventForm({
   onClear: () => void
   onCancel?: () => void
   onUpdateCategory?: (id: string, name: string, color: string) => void
+  initialRepeat?: { days: number[]; start: string; end: string; groupId?: string }
 }) {
   const titleRef = useRef<HTMLInputElement>(null)
 
@@ -57,14 +59,14 @@ export default function EventForm({
   const [editCatColor, setEditCatColor] = useState('#39FF14')
 
   // 重复规则：0=周日 1=周一 ... 6=周六；新建/编辑均支持修改
-  const [repeatDays, setRepeatDays] = useState<number[]>([])
-  const [repeatStart, setRepeatStart] = useState<string>(date)
-  const [repeatEnd, setRepeatEnd] = useState<string>(date)
+  const [repeatDays, setRepeatDays] = useState<number[]>(initialRepeat?.days ?? [])
+  const [repeatStart, setRepeatStart] = useState<string>(initialRepeat?.start ?? date)
+  const [repeatEnd, setRepeatEnd] = useState<string>(initialRepeat?.end ?? date)
   useEffect(() => {
-    setRepeatDays([])
-    setRepeatStart(date)
-    setRepeatEnd(date)
-  }, [date])
+    setRepeatDays(initialRepeat?.days ?? [])
+    setRepeatStart(initialRepeat?.start ?? date)
+    setRepeatEnd(initialRepeat?.end ?? date)
+  }, [initialRepeat?.days, initialRepeat?.start, initialRepeat?.end, date])
 
   // 选中重复后，若结束日期不晚于开始日期，自动往后延 12 周
   useEffect(() => {
@@ -103,6 +105,7 @@ export default function EventForm({
         endTime: end,
         note: note.trim() || undefined,
         categoryId,
+        repeatGroup: initialRepeat?.groupId,
       },
       repeatDays.length === 0
         ? undefined
